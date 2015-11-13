@@ -21,6 +21,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 /* This recipe is to be used with the Jeopardy Handout: http://bit.ly/1bvnvd4 */
 
@@ -28,6 +29,9 @@ public class Jeopardy implements ActionListener {
 	private JButton firstButton;
 	private JButton secondButton;
 	private JButton thirdButton, fourthButton;
+	private Timer questionTimer = new Timer(1000, this);
+	int secondsPassed = 0;
+	//private Boolean secondButtonModifier = false;
 	
 	private JPanel quizPanel;
 	int score = 0;
@@ -40,6 +44,7 @@ public class Jeopardy implements ActionListener {
 
 	private void start() {
 		JFrame frame = new JFrame();
+
 		quizPanel = new JPanel();
 		frame.setLayout(new BorderLayout());
 		
@@ -49,7 +54,7 @@ public class Jeopardy implements ActionListener {
 		quizPanel.add(header);
 		frame.add(quizPanel);
 		
-		playJeopardyTheme();
+		//playJeopardyTheme();
 		
 		firstButton = createButton("$1000000");
 		quizPanel.add(firstButton);
@@ -58,9 +63,18 @@ public class Jeopardy implements ActionListener {
 		secondButton = createButton("$0");
 		// 10. Add the secondButton to the quizPanel
 		quizPanel.add(secondButton);
+		
+		thirdButton = createButton("$200");
+		quizPanel.add(thirdButton);
+		
+		fourthButton = createButton("$400");
+		quizPanel.add(fourthButton);
+		
 		// 11. Add an action listeners to the buttons (2 lines of code)
 		firstButton.addActionListener(this);
 		secondButton.addActionListener(this);
+		thirdButton.addActionListener(this);
+		fourthButton.addActionListener(this);
 		// 12. Fill in the actionPerformed() method below
 				
 		frame.pack();
@@ -93,55 +107,93 @@ public class Jeopardy implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		//playJeopardyTheme();
 
-		JButton buttonPressed = (JButton) arg0.getSource();
-		// If the buttonPressed was the firstButton
-		if(buttonPressed == firstButton)
-		{
-			askQuestion("Enter the text that was shown on the button you just clicked", "$1000000", 1000000);
-			firstButton.setText("");
-		}
-			// Call the askQuestion() method
-			
-			// Fill in the askQuestion() method. When you play the game, the score should change.
 		
-		// Or if the buttonPressed was the secondButton
+		if(arg0.getSource() instanceof Timer)
+		{
+			secondsPassed = secondsPassed + 1;
+			System.out.println(secondsPassed);
+		}
+		else
+		{
+			JButton buttonPressed = (JButton) arg0.getSource();
+			// If the buttonPressed was the firstButton
+			if(buttonPressed == firstButton)
+			{
+				firstButton.setText("");
+				askQuestion("Enter the text that was shown on the button you just clicked", "$1000000", 1000000, 1000);
+				secondButton.setText("2x");
+				
+			}
+			// Or if the buttonPressed was the secondButton
 
-		else if(buttonPressed == secondButton)
-		{
-			askQuestion("Recite the question that was shown by the $1000000 button", "Enter the text that was shown on the button you just clicked", 0);
-			secondButton.setText("");
-		}
+			else if(buttonPressed == secondButton)
+			{
+				secondButton.setText("");
+				if(secondButton.getText() == "2x")
+				{
+					askQuestion("PERFECTLY RECITE the question that was shown by the $1000000 button", "Enter the text that was shown on the button you just clicked", score, 1000);
+				}
+				else
+				{
+					askQuestion("Before you answer the question, remember this: Type your answer in the box below. When you are done, press Enter to finish. There is no time limit to this question (You have five seconds and the answer is 'answer'. If you take too long (you probably did by now), you will lose EVERYTHING)", "answer", -score, 5);
+				}
+			}
 			
-		
+			else if(buttonPressed == thirdButton)
+			{
+				thirdButton.setText("");
+				askQuestion("What is the name of this button?", "thirdButton", 200, 1000);
+			}
+			else if(buttonPressed == fourthButton)
+			{
+				fourthButton.setText("");
+				askQuestion("EXACTLY HOW MANY SECONDS HAVE PASSED SINCE YOU PRESSED THIS BUTTON?!", "" + secondsPassed, 400, 1000);
+			}
+		}
 		// Clear the button text (set the button text to nothing)
-		
+
 	}
 
-	private void askQuestion(String question, String correctAnswer, int prizeMoney) {
-		// Remove this temporary message
+	private void askQuestion(String question, String correctAnswer, int prizeMoney, int timeLimit) {
+		secondsPassed = 0;
+
 		JOptionPane.showMessageDialog(null, "Get ready for some ultimate questioning ACTION!!!");
-		// Use a pop up to ask the user the question
+		questionTimer.start();
 		String answer = JOptionPane.showInputDialog(question);
 		// If the answer is correct
-		if(answer == correctAnswer)
+		questionTimer.stop();
+		if(answer.equals(correctAnswer) && secondsPassed < timeLimit)
 		{
 			// Increase the score by the prizeMoney
 			score = score + prizeMoney;
 			// Call the updateScore() method
-			updateScore();
 			// Pop up a message to tell the user they were correct
-			JOptionPane.showMessageDialog(null, "Contragulations! You just earned " + prizeMoney + " nonexistent dollars (Not legal tender)!");
+			JOptionPane.showMessageDialog(null, "Cantragulations! You just earned " + prizeMoney + " nonexistent dollars (Not legal tender)!");
+			updateScore();
 		}	
 		// Otherwise
-		else
+		else if(answer.equals(correctAnswer) && secondsPassed > timeLimit)
 		{
+			
 			// Decrement the score by the prizeMoney
-			score = score - prizeMoney;
+			score = score - prizeMoney/2;
 			// Pop up a message to tell the user the correct answer
-			JOptionPane.showMessageDialog(null, "Shame on YOU! You just wasted a bunch of time losing " + prizeMoney + " nonexistent dollars!");
+			JOptionPane.showMessageDialog(null, "SHAME on YOU and your EVIL PLANS! You just wasted " + secondsPassed + " seconds TOO MANY losing " + prizeMoney + " nonexistent dollars!");
 			// Call the updateScore() method
 			updateScore();
 		}	
+		else if(!answer.equals(correctAnswer) && secondsPassed < timeLimit)
+		{
+			score = score - prizeMoney;
+			JOptionPane.showMessageDialog(null, "The Committee On Incorrect Answers And Unexpected Penalties believe that if your answer is correct, then it should not be " + answer + ". However, it appreciates your disinterest for this question.");
+			updateScore();
+		}
+		else if(!answer.equals(correctAnswer) && secondsPassed > timeLimit)
+		{
+			score = score - 2*prizeMoney;
+			JOptionPane.showMessageDialog(null, "The Committee refuses to wait " + secondsPassed + " seconds only to receive an incorrect response. Report to the Office Of Your Doom immediately!!");
+			updateScore();
+		}
 		
 	}
 
