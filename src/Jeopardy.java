@@ -29,13 +29,15 @@ public class Jeopardy implements ActionListener {
 	private JButton firstButton;
 	private JButton secondButton;
 	private JButton thirdButton, fourthButton;
+	JButton[] questionButtons = new JButton[5];
 	private Timer questionTimer = new Timer(1000, this);
 	int secondsPassed = 0;
 	//private Boolean secondButtonModifier = false;
 	
-	private JPanel quizPanel;
+	private JPanel randomPanel;
+	private JPanel panel2;
 	int score = 0;
-	JLabel scoreBox = new JLabel("0");
+	JLabel scoreBox = new JLabel("$0");
 	int buttonCount = 0;
 
 	public static void main(String[] args) {
@@ -44,41 +46,47 @@ public class Jeopardy implements ActionListener {
 
 	private void start() {
 		JFrame frame = new JFrame();
+		
+		frame.setLayout(new GridLayout(1, 2));
+		panel2 = new JPanel();
 
-		quizPanel = new JPanel();
+		randomPanel = new JPanel();
 		frame.setLayout(new BorderLayout());
 		
 		frame.setVisible(true);
-		frame.setTitle("The Ultimate TRIALZ!");
+		frame.setTitle("The Ultimate TRIALZ! (YOUR DOOM IS INEVITABLE!)");
 		JPanel header = new JPanel();
-		quizPanel.add(header);
-		frame.add(quizPanel);
+		randomPanel.add(header);
+		frame.add(randomPanel);
 		
-		//playJeopardyTheme();
+		playJeopardyTheme();
 		
-		firstButton = createButton("$1000000");
-		quizPanel.add(firstButton);
+		questionButtons[1] = createButton("$1000000");
+		randomPanel.add(questionButtons[1]);
 		
 		// 9. Use the secondButton variable to hold a button using the createButton method
-		secondButton = createButton("$0");
+		questionButtons[2] = createButton("$0");
 		// 10. Add the secondButton to the quizPanel
-		quizPanel.add(secondButton);
+		randomPanel.add(questionButtons[2]);
 		
-		thirdButton = createButton("$200");
-		quizPanel.add(thirdButton);
+		questionButtons[3] = createButton("$200");
+		randomPanel.add(questionButtons[3]);
 		
-		fourthButton = createButton("$400");
-		quizPanel.add(fourthButton);
+		questionButtons[4] = createButton("$400");
+		randomPanel.add(questionButtons[4]);
 		
 		// 11. Add an action listeners to the buttons (2 lines of code)
-		firstButton.addActionListener(this);
-		secondButton.addActionListener(this);
-		thirdButton.addActionListener(this);
-		fourthButton.addActionListener(this);
+		for(JButton b: questionButtons)
+		{
+			if(!(b == null))
+			{
+				b.addActionListener(this);
+			}
+		}
 		// 12. Fill in the actionPerformed() method below
 				
 		frame.pack();
-		quizPanel.setLayout(new GridLayout(buttonCount+1, 3));
+		randomPanel.setLayout(new GridLayout(buttonCount+1, 3));
 		frame.add(makeScorePanel(), BorderLayout.NORTH);
 		frame.setSize(Toolkit.getDefaultToolkit().getScreenSize().height, Toolkit.getDefaultToolkit().getScreenSize().width);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -117,37 +125,53 @@ public class Jeopardy implements ActionListener {
 		{
 			JButton buttonPressed = (JButton) arg0.getSource();
 			// If the buttonPressed was the firstButton
-			if(buttonPressed == firstButton)
-			{
-				firstButton.setText("");
-				askQuestion("Enter the text that was shown on the button you just clicked", "$1000000", 1000000, 1000);
-				secondButton.setText("2x");
-				
-			}
-			// Or if the buttonPressed was the secondButton
-
-			else if(buttonPressed == secondButton)
-			{
-				secondButton.setText("");
-				if(secondButton.getText() == "2x")
-				{
-					askQuestion("PERFECTLY RECITE the question that was shown by the $1000000 button", "Enter the text that was shown on the button you just clicked", score, 1000);
-				}
-				else
-				{
-					askQuestion("Before you answer the question, remember this: Type your answer in the box below. When you are done, press Enter to finish. There is no time limit to this question (You have five seconds and the answer is 'answer'. If you take too long (you probably did by now), you will lose EVERYTHING)", "answer", -score, 5);
-				}
-			}
 			
-			else if(buttonPressed == thirdButton)
+			if(!(buttonPressed.getText().equals("")))
 			{
-				thirdButton.setText("");
-				askQuestion("What is the name of this button?", "thirdButton", 200, 1000);
-			}
-			else if(buttonPressed == fourthButton)
-			{
-				fourthButton.setText("");
-				askQuestion("EXACTLY HOW MANY SECONDS HAVE PASSED SINCE YOU PRESSED THIS BUTTON?!", "" + secondsPassed, 400, 1000);
+				if(buttonPressed == questionButtons[1])
+				{
+					buttonPressed.setText("");
+					askQuestion("Enter the text that was shown on the button you just clicked", "$1000000", 1000000, 5);
+					questionButtons[2].setText("2x");
+					
+				}
+				// Or if the buttonPressed was the secondButton
+	
+				else if(buttonPressed == questionButtons[2])
+				{
+					if(buttonPressed.getText().equals("$0"))
+					{
+						askQuestion("Before you answer the question, remember this: Type your answer in the box below. When you are done, press Enter to finish. There is no time limit to this question (You have five seconds and the answer is 'answer'. If you take too long (you probably did by now), you will lose EVERYTHING)", "answer", -score, 5);
+					}
+					else if(buttonPressed.getText().equals("2x"))
+					{
+						askQuestion("PERFECTLY RECITE the question that was shown by the $1000000 button IN TEN SECONDS!", "Enter the text that was shown on the button you just clicked", score, 10);
+					}
+					buttonPressed.setText("");
+	
+				}
+				
+				else if(buttonPressed == questionButtons[3])
+				{
+					int blankButtons = 0;
+					for(JButton b: questionButtons)
+					{
+						if(!(b == null))
+						{
+							if(b.getText().equals(""))
+							{
+								blankButtons = blankButtons + 1;
+							}
+						}
+					}
+					buttonPressed.setText("");
+					askQuestion("How many blank buttons were there BEFORE you pressed this button?", "" + blankButtons, 200, secondsPassed + 1);
+				}
+				else if(buttonPressed == questionButtons[4])
+				{
+					buttonPressed.setText("");
+					askQuestion("EXACTLY HOW MANY SECONDS HAVE PASSED SINCE YOU PRESSED THIS BUTTON?! You have as much time as you need. Therefore, you cannot reduce your inevitable losses.", "" + secondsPassed, 400, secondsPassed + 1);
+				}
 			}
 		}
 		// Clear the button text (set the button text to nothing)
@@ -178,20 +202,20 @@ public class Jeopardy implements ActionListener {
 			// Decrement the score by the prizeMoney
 			score = score - prizeMoney/2;
 			// Pop up a message to tell the user the correct answer
-			JOptionPane.showMessageDialog(null, "SHAME on YOU and your EVIL PLANS! You just wasted " + secondsPassed + " seconds TOO MANY losing " + prizeMoney + " nonexistent dollars!");
+			JOptionPane.showMessageDialog(null, "SHAME on YOU and your EVIL PLANS! You just wasted " + secondsPassed + " seconds TOO MANY losing " + prizeMoney + " nonexistent dollars from the fact that your ridiculous answer of " + answer + " did not match the correct answer of " + correctAnswer + "!");
 			// Call the updateScore() method
 			updateScore();
 		}	
 		else if(!answer.equals(correctAnswer) && secondsPassed < timeLimit)
 		{
 			score = score - prizeMoney;
-			JOptionPane.showMessageDialog(null, "The Committee On Incorrect Answers And Unexpected Penalties believe that if your answer is correct, then it should not be " + answer + ". However, it appreciates your disinterest for this question.");
+			JOptionPane.showMessageDialog(null, "The Committee On Incorrect Answers And Unexpected Penalties believe that if your answer is correct, then it should not be " + answer + ". It was " + correctAnswer + ", though it was quite obvious that you would eventually succumb to Your Doom. However, it appreciates your disinterest for this question.");
 			updateScore();
 		}
 		else if(!answer.equals(correctAnswer) && secondsPassed > timeLimit)
 		{
 			score = score - 2*prizeMoney;
-			JOptionPane.showMessageDialog(null, "The Committee refuses to wait " + secondsPassed + " seconds only to receive an incorrect response. Report to the Office Of Your Doom immediately!!");
+			JOptionPane.showMessageDialog(null, "The Committee refuses to wait " + secondsPassed + " seconds only to receive an incorrect response. The answer was " + correctAnswer + ", but that does not really matter anymore. Report to the Office Of Your Doom immediately!!");
 			updateScore();
 		}
 		
@@ -223,7 +247,13 @@ public class Jeopardy implements ActionListener {
 	}
 
 	private void updateScore() {
-		scoreBox.setText("" + score);
+		scoreBox.setText("$" + score);
+		if(score < 0)
+		{
+			playJeopardyTheme();
+			JOptionPane.showMessageDialog(null, "YOUR SCORE IS NEGATIVE! YOUR DOOM IS NOW!");
+			System.exit(1);
+		}
 	}
 
 	private JPanel createHeader(String topicName) {
